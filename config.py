@@ -6,6 +6,6 @@ broker = {
 }
 
 logging = {
-    'base_level': log.WARN,
+    'base_level': log.FATAL,
     'script_level': log.INFO,
 }
