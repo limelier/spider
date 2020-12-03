@@ -12,7 +12,8 @@ import pika
 import logging
 import config as cfg
 import json
-import urllib.request as url_req
+# import urllib.request as url_req
+import requests
 import os
 
 logger = logging.getLogger('worker')
@@ -20,15 +21,53 @@ logging.basicConfig(level=cfg.logging['base_level'])
 logger.setLevel(cfg.logging['script_level'])
 
 
-def download_page(url: str, filename: str, directory: str):
+def add_www(url):
+    protocol, host = url.split('://')
+    return '{}://www.{}'.format(protocol, host)
+
+
+def download_page(url: str, filename: str, directory: str, verify: bool = True):
     """
     Download a webpage, saving it into the given directory.
     :param url: the URL of the page that needs to be downloaded
     :param filename: the name of the HTML file that will be created
     :param directory: the directory to create the file into
+    :param verify: verify SSL certificate
     """
-    response = url_req.urlopen(url)
-    data = response.read()
+    try:
+        # use different user-agent to avoid 403: Forbidden
+        # time out after 2 seconds
+        response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, verify=verify, timeout=5)
+    except requests.exceptions.SSLError as e:
+        logger.debug(e)
+        if url.startswith('https://www.'):
+            if verify:
+                logger.warning('Encountered SSL error, trying without SSL certificate verification')
+                download_page(url, filename, directory, verify=False)
+            else:
+                logger.error('Encountered SSL error even without verification, skipping')
+        else:
+            logger.warning('Encountered SSL error, trying with added "www."')
+            download_page(add_www(url), filename, directory)
+        return
+    except requests.exceptions.ConnectionError as e:
+        logger.debug(e)
+        if url.startswith('https://www.'):
+            logger.error('Encountered connection error, skipping')
+        else:
+            logger.warning('Encountered connection error, trying with added "www."')
+            download_page(add_www(url), filename, directory)
+        return
+    except requests.exceptions.ReadTimeout as e:
+        logger.debug(e)
+        logger.error('Timed out on reading page, skipping')
+        return
+    except requests.exceptions.TooManyRedirects as e:
+        logger.debug(e)
+        logger.error('Encountered too many redirects, skipping')
+        return
+
+    data = response.content
 
     path = os.path.join(directory, filename)
     logger.info('Downloaded site, writing to file %r', path)
