@@ -12,7 +12,6 @@ import pika
 import logging
 import config as cfg
 import json
-# import urllib.request as url_req
 import requests
 import os
 
@@ -29,6 +28,7 @@ def add_www(url):
 def download_page(url: str, filename: str, directory: str, verify: bool = True):
     """
     Download a webpage, saving it into the given directory.
+
     :param url: the URL of the page that needs to be downloaded
     :param filename: the name of the HTML file that will be created
     :param directory: the directory to create the file into

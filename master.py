@@ -1,7 +1,7 @@
 """
 Master component of spider. Assign download tasks into working directory.
 
-Fetch top 500 sites for every country in https://www.alexa.com/topsites/countries, then send them to the RabbitMQ broker
+Fetch top 50 sites for every country in https://www.alexa.com/topsites/countries, then send them to the RabbitMQ broker
 for the workers to handle the downloading. Also creates the subdirectories for the workers to download into.
 """
 import pika
@@ -10,7 +10,7 @@ import config as cfg
 import os
 import json
 import sys
-import crawling
+import scraping
 
 logger = logging.getLogger('master')
 logging.basicConfig(level=cfg.logging['base_level'])
@@ -20,6 +20,7 @@ logger.setLevel(cfg.logging['script_level'])
 def init_queue(ch: pika.adapters.blocking_connection.BlockingChannel):
     """
     Create queue if it doesn't exist, purge it if it does.
+
     :param ch: the channel to the message broker
     """
     ch.queue_declare(cfg.broker['queue'], durable=True)
@@ -30,17 +31,18 @@ def init_queue(ch: pika.adapters.blocking_connection.BlockingChannel):
 
 def assign_tasks(ch: pika.adapters.blocking_connection.BlockingChannel):
     """
-    Webcrawl Alexa Top Sites, creating tasks to send to the workers by the given channel.
+    Web scrape Alexa Top Sites, creating tasks to send to the workers by the given channel.
+
     :param ch: the channel to the message broker
     """
-    logger.info('Crawling country list')
-    country_tuples = crawling.find_countries()
-    logger.info('Got list of countries, crawling individual pages')
+    logger.info('Scraping country list')
+    country_tuples = scraping.find_countries()
+    logger.info('Got list of countries, scraping individual pages')
 
     root_path = os.getcwd()
 
     for country, href in country_tuples:
-        sites = crawling.find_sites(country, href)
+        sites = scraping.find_sites(href)
         logger.info('Got list of sites for %r', country)
 
         country_path = os.path.join(root_path, country)
@@ -64,7 +66,7 @@ def assign_tasks(ch: pika.adapters.blocking_connection.BlockingChannel):
 
 
 def main():
-    """Webcrawl Alexa Top Sites to create tasks to send to the message broker."""
+    """Web scrape Alexa Top Sites to create tasks to send to the message broker."""
     try:
         with pika.BlockingConnection(pika.ConnectionParameters(
                 host=cfg.broker['host'] or 'localhost'

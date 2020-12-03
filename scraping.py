@@ -1,8 +1,16 @@
 import urllib.request as url_req
+from typing import List, Tuple
+
 from bs4 import BeautifulSoup
 
 
-def find_countries():
+def find_countries() -> List[Tuple[str, str]]:
+    """
+    Web scrape Alexa Top Sites for the list of supported countries.
+
+    :return: a list of (country, href) pairs, where the href is the country page's path relative to
+    https://www.alexa.com/topsites/
+    """
     response = url_req.urlopen('https://www.alexa.com/topsites/countries')
     data = response.read()
     soup = BeautifulSoup(data, 'html.parser')
@@ -17,7 +25,13 @@ def find_countries():
     return country_tuples
 
 
-def find_sites(country, href):
+def find_sites(href) -> List[str]:
+    """
+    Web scrape Alexa Top Sites for the top 50 sites in a given country.
+
+    :param href: the country page's path relative to https://www.alexa.com/topsites/
+    :return: a list of URLs for the top 50 sites
+    """
     response = url_req.urlopen('https://www.alexa.com/topsites/' + href)
     data = response.read()
     soup = BeautifulSoup(data, 'html.parser')
