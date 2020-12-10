@@ -35,14 +35,25 @@ def assign_tasks(ch: pika.adapters.blocking_connection.BlockingChannel):
 
     :param ch: the channel to the message broker
     """
+    country_tuples = []
     logger.info('Scraping country list')
-    country_tuples = scraping.find_countries()
+    try:
+        country_tuples = scraping.find_countries()
+    except scraping.RetryError:
+        logger.fatal('Too many retries, aborting.')
+        exit(-1)
     logger.info('Got list of countries, scraping individual pages')
 
     root_path = os.getcwd()
 
     for country, href in country_tuples:
-        sites = scraping.find_sites(href)
+        logger.info('Scraping top sites page for %r', country)
+        sites = []
+        try:
+            sites = scraping.find_sites(href)
+        except scraping.RetryError:
+            logger.fatal('Too many retries, aborting.')
+            exit(-1)
         logger.info('Got list of sites for %r', country)
 
         country_path = os.path.join(root_path, country)
