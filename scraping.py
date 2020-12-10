@@ -35,4 +35,4 @@ def find_sites(href) -> List[str]:
     response = url_req.urlopen('https://www.alexa.com/topsites/' + href)  # todo: error handling w/ retries
     data = response.read()
     soup = BeautifulSoup(data, 'html.parser')
-    return ['https://' + div.a.string.lower() for div in soup.select('.DescriptionCell')]
+    return ['http://' + div.a.string.lower() for div in soup.select('.DescriptionCell')]
