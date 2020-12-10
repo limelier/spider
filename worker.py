@@ -119,7 +119,7 @@ def main():
             ch.basic_qos(prefetch_count=1)
             ch.basic_consume(cfg.broker['queue'], callback)
             ch.start_consuming()
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         logger.info('Keyboard interrupt detected, aborting')
     except pika.exceptions.AMQPConnectionError as e:
         logger.debug('AMQP Connection Error: %r', e)
