@@ -66,13 +66,22 @@ def download_page(url: str, filename: str, directory: str, verify: bool = True):
         logger.debug(e)
         logger.error('Encountered too many redirects, skipping')
         return
+    except Exception as e:
+        logger.debug(e)
+        logger.error('Encountered other error, skipping')
+        return
 
     data = response.content
 
-    path = os.path.join(directory, filename)
-    logger.info('Downloaded site, writing to file %r', path)
-    with open(path, 'bw+') as file:
-        file.write(data)
+    try:
+        path = os.path.join(directory, filename)
+        logger.info('Downloaded site, writing to file %r', path)
+        with open(path, 'bw+') as file:
+            file.write(data)
+    except Exception as e:
+        logger.debug(e)
+        logger.error('Encountered error while writing site to file, skipping')
+        return
 
 
 def callback(
