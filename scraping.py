@@ -11,7 +11,7 @@ def find_countries() -> List[Tuple[str, str]]:
     :return: a list of (country, href) pairs, where the href is the country page's path relative to
     https://www.alexa.com/topsites/
     """
-    response = url_req.urlopen('https://www.alexa.com/topsites/countries')
+    response = url_req.urlopen('https://www.alexa.com/topsites/countries')  # todo: error handling w/ retries
     data = response.read()
     soup = BeautifulSoup(data, 'html.parser')
     country_lists = soup.find_all('ul', class_='countries', recursive=True)
@@ -32,7 +32,7 @@ def find_sites(href) -> List[str]:
     :param href: the country page's path relative to https://www.alexa.com/topsites/
     :return: a list of URLs for the top 50 sites
     """
-    response = url_req.urlopen('https://www.alexa.com/topsites/' + href)
+    response = url_req.urlopen('https://www.alexa.com/topsites/' + href)  # todo: error handling w/ retries
     data = response.read()
     soup = BeautifulSoup(data, 'html.parser')
     return ['https://' + div.a.string.lower() for div in soup.select('.DescriptionCell')]

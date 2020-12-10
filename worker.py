@@ -25,7 +25,7 @@ def add_www(url):
     return '{}://www.{}'.format(protocol, host)
 
 
-def download_page(url: str, filename: str, directory: str, verify: bool = True):
+def download_page(url: str, filename: str, directory: str, verify: bool = True):  # todo: do not redownload sites
     """
     Download a webpage, saving it into the given directory.
 
