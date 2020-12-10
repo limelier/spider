@@ -40,7 +40,7 @@ def download_page(url: str, filename: str, directory: str, verify: bool = True):
         response = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, verify=verify, timeout=5)
     except requests.exceptions.SSLError as e:
         logger.debug(e)
-        if url.startswith('https://www.'):
+        if url.startswith('http://www.'):
             if verify:
                 logger.warning('Encountered SSL error, trying without SSL certificate verification')
                 download_page(url, filename, directory, verify=False)
@@ -52,7 +52,7 @@ def download_page(url: str, filename: str, directory: str, verify: bool = True):
         return
     except requests.exceptions.ConnectionError as e:
         logger.debug(e)
-        if url.startswith('https://www.'):
+        if url.startswith('http://www.'):
             logger.error('Encountered connection error, skipping')
         else:
             logger.warning('Encountered connection error, trying with added "www."')
